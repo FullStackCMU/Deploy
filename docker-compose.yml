@@ -37,6 +37,16 @@ services:
       - POSTGRES_APP_USER=${POSTGRES_APP_USER}
       - POSTGRES_APP_PASSWORD=${POSTGRES_APP_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-7d}
+      - CORS_ORIGIN=${PUBLIC_URL}
+      - OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
+      - OAUTH_AUTHORIZE_URL=${OAUTH_AUTHORIZE_URL}
+      - OAUTH_TOKEN_URL=${OAUTH_TOKEN_URL}
+      - OAUTH_REDIRECT_URL=${PUBLIC_URL}/api/auth/callback
+      - OAUTH_SCOPE=${OAUTH_SCOPE:-openid profile email basic_info}
+      - AI_PROVIDER=${AI_PROVIDER:-none}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
     volumes:
       - ./logs:/app/logs
     post_start:
@@ -44,7 +54,7 @@ services:
           [
             "sh",
             "-c",
-            'pnpm run db:migrate | awk ''{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0; fflush(); }'' | tee -a /app/logs/migration.log',
+            '(pnpm run db:migrate && pnpm run db:seed-rubric) 2>&1 | awk ''{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0; fflush(); }'' | tee -a /app/logs/migration.log',
           ]
   frontend:
     depends_on:
